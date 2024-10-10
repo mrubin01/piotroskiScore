@@ -1,3 +1,20 @@
+"""
+INCOME STATEMENTS
+Net Income
+Gross Profit
+Total Revenue
+
+BALANCE SHEET
+Total Assets
+Long Term Debt
+Current Assets
+Current Liabilities
+Share Issued
+
+CASH FLOW
+Operating Cash Flow
+
+"""
 fundamentals = {
     "Net Income": "Net Income",
     "Total Assets": "Total Assets",
