@@ -29,7 +29,7 @@ Step 2: try to extract all the values needed to compute the metrics. Only Total 
         to the previous year (PY). The dictionary df_data will contain these values
 
 Step 3: create a dataframe with the values in the dictionary df_data and based on them add 9 new calculated columns
-        containing the metrics. These new columns can have only 3 values: 1, 0 or None. Drop all the columns 
+        containing the real metrics. These new columns can have only 3 values: 1, 0 or None. Drop all the columns 
         but one with the ticker name ("Ticker") and the 9 columns with the metrics. 
 
 Step 4: the scores will be contained in the dictionary scores to compute the valid metrics and the positive values.
