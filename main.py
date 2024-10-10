@@ -43,16 +43,17 @@ Step 5: only the stocks with a score of 8/9 or 9/9 will be shown with the detail
 # Step 1
 
 # uncomment the lines below to create a ticker list from a txt file
-# my_file = open("active_tickers.txt", "r")
-# data = my_file.read()
-# data_into_list = data.replace('\n', ', ').split(", ")
-# ticker_list = list(filter(None, data_into_list))
+my_file = open("YahooFinanceAllTickers.txt", "r")
+data = my_file.read()
+data_into_list = data.replace('\n', ', ').split(", ")
+ticker_list = list(filter(None, data_into_list))
 
-ticker_list = ["XOMO", "RYLD", "ASG", "CUBA", "BITO"]
-ticker_to_use = ticker_list[4]
+#ticker_list = ['OEDV', 'AAPL', 'BAC', 'AMZN', 'T', 'GOOG']
+# ticker_list = ['OEDV', 'AAPL', 'BAC', 'AMZN', 'T', 'GOOG']
+#ticker_to_use = ticker_list[2]
+
 
 for ticker_to_use in ticker_list:
-
     # download data and split it into 3 variables: income statement, balance sheet and cash flow
     if functions.get_fundamentals(ticker_to_use)[0]:
         inc_stat = functions.get_fundamentals(ticker_to_use)[1]
@@ -62,7 +63,7 @@ for ticker_to_use in ticker_list:
         years = functions.get_fundamentals(ticker_to_use)[5]
     else:  # no data for the ticker or missing years
         print("Missing data! Impossible to compute the metrics")
-        sys.exit()
+        continue
 
     # Step 2
     # check if the last year available is 2023 or 2024
