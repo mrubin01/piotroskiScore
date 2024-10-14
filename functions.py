@@ -4,6 +4,67 @@ import numpy as np
 import sys
 
 
+def write_list_to_txt(lst: list, title: str):
+    with open(f'{title}.txt', 'w+') as f:
+        for items in lst:
+            f.write('%s\n' %items)
+    f.close()
+
+
+def get_ticker_info(ticker: str):
+    """
+    This function will download the ticker data and will extract the needed values:
+    industry, sector, country, price, book value, price/book ratio, PE ratio, PEG ratio.
+    :param ticker: ticker name as a string
+    :return: a list of 8 items
+    """
+    # download the ticker data
+    data = yf.Ticker(ticker)
+
+    if data:
+        try:
+            industry = data.info["industry"]
+        except:
+            industry = None
+        try:
+            sector = data.info["sector"]
+        except:
+            sector = None
+        try:
+            country = data.info["country"]
+        except:
+            country = None
+
+        try:
+            price = round(data.info["currentPrice"], 2)
+        except:
+            price = None
+
+        try:
+            bookValue = round(data.info["bookValue"], 2)
+        except:
+            bookValue = None
+
+        if price and bookValue:
+            pb_ratio = round(price / bookValue, 3)
+        else:
+            pb_ratio = None
+
+        try:
+            trailingpe = float(round(data.info["trailingPE"], 2))
+        except:
+            trailingpe = None
+
+        try:
+            peg = round(data.info["pegRatio"], 2)
+        except:
+            peg = None
+    else:
+        return [None, None, None, None, None, None, None, None]
+
+    return [industry, sector, country, price, bookValue, pb_ratio, trailingpe, peg]
+
+
 def get_fundamentals(ticker: str) -> list:
     """
     This function first tries to download the data from yfinance, if successful
