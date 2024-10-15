@@ -44,7 +44,12 @@ Step 4: the scores will be contained in the dictionary scores to compute the val
         If a stock has all valid metrics and six of them are positive the score will be 6/9; if the valid metrics
         are seven and the positive ones are only 4, the score will be 4/7;
 
-Step 5: only the stocks with a score of 8/9 or 9/9 will be stored into a txt file.
+Step 5: only the stocks with a score of 8/9 or 9/9 will be stored into a txt file named HighestScore_
+
+Step 6: download the average PE ratio per industry
+
+Step 7: for each of the tickers with the highest scores it will be calculated Price/Book ratio, PE ratio and
+        PEG ratio to checker whether it is undervalued. If so, it will be printed to screen
 
 """
 
@@ -52,24 +57,25 @@ Step 5: only the stocks with a score of 8/9 or 9/9 will be stored into a txt fil
 # Step 1
 
 # uncomment the lines below to create a ticker list from a txt file
-# my_file = open("YahooFinanceAllTickers.txt", "r")
-# my_file = open("YahooFinanceAllTickers.txt", "r")
+# my_file = open("active_tickers.txt", "r")
+# my_file = open("HighestScore_NYSE_NASDAQ.txt", "r")
 # data = my_file.read()
 # data_into_list = data.replace('\n', ', ').split(", ")
 # ticker_list = list(filter(None, data_into_list))
 
-ticker_list = ['AAPL', 'AMZN', 'T', 'GOOG']
+ticker_list = ['BITO', 'RYLD', 'TLTW', 'BLCN']
 ticker = ticker_list[0]
 
 best_stocks = []
 
+
 # set check_piotroski_score to True to search for tickers with the highest rank
 # set check_undervalued_stocks to True to find undervalued tickers among those with the highest rank
-check_piotroski_score = True
-check_undervalued_stocks = False
+check_piotroski_score = False
+check_undervalued_stocks = True
 
 if check_piotroski_score:
-    for ticker_to_use in ["MSFT"]:  # ticker_list:
+    for ticker_to_use in ["CUBA"]:  # ticker_list:
         # download data and split it into 3 variables: income statement, balance sheet and cash flow
         if functions.get_fundamentals(ticker_to_use)[0]:
             inc_stat = functions.get_fundamentals(ticker_to_use)[1]
@@ -358,7 +364,7 @@ if check_piotroski_score:
         increase_gross_margin = df._get_value(0, "Increase in Gross Margin")
         increase_asset_turnover = df._get_value(0, "Increase in Asset Turnover")
 
-        if int(pos_scores) >= 5:
+        if int(pos_scores) >= 8:
             best_stocks.append(ticker_to_use)
             print("\n" + ticker_to_use + " based on year: " + str(last_year))
             print("PIOTROSKI SCORE: " + str(piotroski_score))
@@ -371,17 +377,23 @@ if check_piotroski_score:
             print("No shares issued: " + str(no_shares_issued))
             print("Increase Gross Margin: " + str(increase_gross_margin))
             print("Increase Asset Turnover: " + str(increase_asset_turnover) + "\n")
-        # else:
-        #     print(ticker_to_use + ": " + str(piotroski_score) + "\n")
+        else:
+            print(ticker_to_use + ": " + str(piotroski_score) + "\n")
 
     print("No. of best stocks: " + str(len(best_stocks)))
 
     # write list of the best stocks to a text file
-    file_name = "HighestScore_AllYahooFinance"
-    functions.write_list_to_txt(best_stocks, file_name)
+    # file_name = "HighestScore_AllYahooFinance"
+    # functions.write_list_to_txt(best_stocks, file_name)
 
+
+# Step 6
+industries, pe_ratios = functions.find_industry_pe_ratio()
+industry_pe_ratio = functions.dict_from_two_lists(industries, pe_ratios)
+
+# Step 7
 if check_undervalued_stocks:
-    my_file = open("HighestScore_AllYahooFinance.txt")
+    my_file = open("HighestScore_NYSE_NASDAQ.txt")
     data = my_file.read()
     # create a list of tickers
     data_into_list = data.replace('\n', ', ').split(", ")
@@ -404,15 +416,33 @@ if check_undervalued_stocks:
         trailingpe = data[6]
         peg = data[7]
 
-        # the peg should be 0 <= peg <= 1, but here we use <= 1.5
-        if pb_ratio and 0 < pb_ratio < 1 and peg and 0 <= peg <= 1.5:
+        # average PE ratio for industry
+        if industry is None or industry == "unknown":
+            avg_pe_ratio = None
+        elif industry == "Paper & Paper Products":  # Paper is not in the webpage
+            avg_pe_ratio = None
+        elif industry == "Lumber & Wood Production":  # Lumber & Wood Production is not in the webpage
+            avg_pe_ratio = None
+        elif industry == "Airports & Air Services":  # Listed with a different name
+            avg_pe_ratio = float(industry_pe_ratio["Airlines"])
+        elif industry == "Electronic Gaming & Multimedia":  # Electronic Gaming & Multimedia is not in the webpage
+            avg_pe_ratio = None
+        elif industry == "Confectioners":  # Confectioners is not in the webpage
+            avg_pe_ratio = None
+        elif industry == "Financial Data & Stock Exchanges":  # Financial Data & Stock Exchanges is not in the webpage
+            avg_pe_ratio = None
+        else:
+            avg_pe_ratio = float(industry_pe_ratio[industry])
+
+        # print to screen tickers with P/B ratio between 0 and 1 and
+        # the PE ratio lower than the industry average
+        if pb_ratio and (0 < pb_ratio < 1) and trailingpe and avg_pe_ratio and (trailingpe < avg_pe_ratio):
             print(t)
             print("Industry: " + industry + " - " + "Sector: " + sector + " - " + "Country: " + country)
             print("Price: " + str(price) + " - " "Book Value: " + str(bookValue))
             print("Price/Book ratio: " + str(pb_ratio))
-            print("PE Ratio is: " + str(trailingpe))
+            print("PE Ratio is: " + str(trailingpe) + " - Industry Avg: " + str(avg_pe_ratio))
             print("PEG Ratio is: " + str(peg) + "\n")
-        # if the ticker has no pb_ratio or no peg, it will be skipped
         else:
             continue
 

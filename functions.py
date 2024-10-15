@@ -4,6 +4,55 @@ import numpy as np
 import sys
 
 
+def dict_from_two_lists(lst1: list, lst2: list):
+    """
+    From two lists it will create a dictionary with keys/values
+    :param lst1: a list of keys
+    :param lst2: a list of values
+    :return: a dictionary
+    """
+    dictionary = dict(zip(lst1, lst2))
+
+    return dictionary
+
+
+def find_industry_pe_ratio():
+    """
+    This function will scan the webpage https://fullratio.com/pe-ratio-by-industry to
+    download the average PE ratio per industry and will create a dictionary
+    industry/pe_ratio.
+    The assumption is that there are 120 industries
+    :return: the dictionary with industry (key) / pe_ratio (value)
+    """
+    webpage = pd.read_html('https://fullratio.com/pe-ratio-by-industry')
+
+    # there are 120 industries: extract the 2 columns we are interested in
+    industry_column = str(webpage[0]["Industry"])
+    pe_column = str(webpage[0]["Average P/E ratio"])
+
+    # split the industry string into 120 substring and strip the leading and trailing white spaces
+    industries = []
+    start = 3
+    end = 48
+    for s in range(0, 120):
+        industry = industry_column[start:end].strip()
+        industries.append(industry)
+        start += 48
+        end += 48
+
+    # split the pe_ratio string into 120 substring and strip the leading and trailing white spaces
+    pe_ratios = []
+    pe_start = 3
+    pe_end = 13
+    for s in range(0, 120):
+        pe = pe_column[pe_start:pe_end].strip()
+        pe_ratios.append(pe)
+        pe_start += 13
+        pe_end += 13
+
+    return industries, pe_ratios
+
+
 def write_list_to_txt(lst: list, title: str):
     with open(f'{title}.txt', 'w+') as f:
         for items in lst:
