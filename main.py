@@ -11,10 +11,17 @@ warnings.filterwarnings('ignore')
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
+# set variables used to check the last available data for each ticker
+current_year = "2024"
+previous_year = "2023"
+two_years_ago = "2022"
+three_years_ago = "2021"
+four_years_ago = "2020"
+
 """
 This code compute the Piotroski F-score from the stock's fundamental data. It is based on 9 metrics. Sometimes 
-the data is missing, then the score will be based on fewer metrics. Only the stocks with 8/9 or 9/9 will 
-be shown with all the details.
+the data is missing, then the score will be based on fewer metrics. Only the stocks with a score of 7/8, 
+8/8, 8/9 or 9/9 will be shown with all the details and stored into a txt file.
 
 Piotroski F-score aim is to identify companies which are improving their financial position in performance. Three 
 areas are assessed: Profitability, Leverage/Liquidity, Efficiency. A high score suggest strong financial 
@@ -44,45 +51,52 @@ Step 4: the scores will be contained in the dictionary scores to compute the val
         If a stock has all valid metrics and six of them are positive the score will be 6/9; if the valid metrics
         are seven and the positive ones are only 4, the score will be 4/7;
 
-Step 5: only the stocks with a score of 8/9 or 9/9 will be stored into a txt file named HighestScore_
+Step 5: the ticker will be printed out along with the Piotroski score, while only the best tickers can 
+        be stored into a txt file named HighestScore_ (uncomment the code at the end of Step 5);
 
-Step 6: download the average PE ratio per industry
+Step 6: download the average PE ratio per industry;
 
 Step 7: for each of the tickers with the highest scores it will be calculated Price/Book ratio, PE ratio and
-        PEG ratio to checker whether it is undervalued. If so, it will be printed to screen
+        PEG ratio to checker whether it is undervalued. If so, it will be printed to screen;
 
 """
 
 
 # Step 1
 
-# uncomment the lines below to create a ticker list from a txt file
-# my_file = open("active_tickers.txt", "r")
-# my_file = open("HighestScore_NYSE_NASDAQ.txt", "r")
-# data = my_file.read()
-# data_into_list = data.replace('\n', ', ').split(", ")
-# ticker_list = list(filter(None, data_into_list))
+# uncomment one line below to create a ticker list from a txt file
+# my_file = open("active_tickers.txt", "r")  # NYSE, NASDAQ
+# my_file = open("YahooFinanceAllTickers.txt", "r")  # All tickers in Yahoo Finance
 
-ticker_list = ['BITO', 'RYLD', 'TLTW', 'BLCN']
-ticker = ticker_list[0]
+# uncomment one line below to create a list with the tickers with the highest Piotroski score
+# my_file = open("HighestScore_NYSE_NASDAQ.txt", "r")
+my_file = open("HighestScore_AllYahooFinance.txt", "r")
+
+data = my_file.read()
+data_into_list = data.replace('\n', ', ').split(", ")
+ticker_list = list(filter(None, data_into_list))
+
+# ticker_list = ['AAPL', 'MSFT', 'TSLA', 'QYYUUAK']
+# ticker = ticker_list[2]
 
 best_stocks = []
 
 
-# set check_piotroski_score to True to search for tickers with the highest rank
-# set check_undervalued_stocks to True to find undervalued tickers among those with the highest rank
+# set check_piotroski_score to True to search for tickers with the highest Piotroski rank
+# set check_undervalued_stocks to True to find undervalued tickers among those with the highest Piotroski rank
 check_piotroski_score = False
 check_undervalued_stocks = True
 
 if check_piotroski_score:
-    for ticker_to_use in ["CUBA"]:  # ticker_list:
+    for ticker_to_use in ticker_list:
         # download data and split it into 3 variables: income statement, balance sheet and cash flow
+        # set two variables with the last year available and how many years of data for that ticker
         if functions.get_fundamentals(ticker_to_use)[0]:
-            inc_stat = functions.get_fundamentals(ticker_to_use)[1]
-            balance_sheet = functions.get_fundamentals(ticker_to_use)[2]
-            cash_flow = functions.get_fundamentals(ticker_to_use)[3]
-            last_year = functions.get_fundamentals(ticker_to_use)[4]
-            years = functions.get_fundamentals(ticker_to_use)[5]
+            inc_stat, balance_sheet, cash_flow, last_year, years = functions.get_fundamentals(ticker_to_use)[1], \
+                                                                   functions.get_fundamentals(ticker_to_use)[2], \
+                                                                   functions.get_fundamentals(ticker_to_use)[3], \
+                                                                   functions.get_fundamentals(ticker_to_use)[4], \
+                                                                   functions.get_fundamentals(ticker_to_use)[5]
         else:  # no data for the ticker or missing years
             print("Missing data! Impossible to compute the metrics")
             continue
@@ -90,76 +104,76 @@ if check_piotroski_score:
 
     # Step 2
         # check if the last year available is 2023 or 2024
-        if last_year == "2023":
+        if last_year == previous_year:  # "2023":
             # try to extract the values that will be used to compute the 9 metrics
             if years == 4:
                 try:
-                    avg_total_asset = (balance_sheet["2023"]["Total Assets"] + balance_sheet["2022"]["Total Assets"] \
-                                      + balance_sheet["2021"]["Total Assets"] + balance_sheet["2020"]["Total Assets"]) / years
+                    avg_total_asset = (balance_sheet[previous_year]["Total Assets"] + balance_sheet[two_years_ago]["Total Assets"] \
+                                      + balance_sheet[three_years_ago]["Total Assets"] + balance_sheet[four_years_ago]["Total Assets"]) / years
                 except Exception as e:
                     avg_total_asset = None
             elif years == 3:
                 try:
-                    avg_total_asset = (balance_sheet["2023"]["Total Assets"] + balance_sheet["2022"]["Total Assets"] \
-                                      + balance_sheet["2021"]["Total Assets"]) / years
+                    avg_total_asset = (balance_sheet[previous_year]["Total Assets"] + balance_sheet[two_years_ago]["Total Assets"] \
+                                      + balance_sheet[three_years_ago]["Total Assets"]) / years
                 except Exception as e:
                     avg_total_asset = None
             elif years == 2:
                 try:
-                    avg_total_asset = (balance_sheet["2023"]["Total Assets"] + balance_sheet["2022"]["Total Assets"]) / years
+                    avg_total_asset = (balance_sheet[previous_year]["Total Assets"] + balance_sheet[two_years_ago]["Total Assets"]) / years
                 except Exception as e:
                     avg_total_asset = None
 
             try:
-                net_income = int(inc_stat["2023"]["Net Income"])
+                net_income = int(inc_stat[previous_year]["Net Income"])
             except Exception as e:
                 net_income = None
             try:
-                roa_cy = int(inc_stat["2023"]["Net Income"]) / avg_total_asset
+                roa_cy = int(inc_stat[previous_year]["Net Income"]) / avg_total_asset
             except Exception as e:
                 roa_cy = None
             try:
-                roa_py = int(inc_stat["2022"]["Net Income"]) / avg_total_asset
+                roa_py = int(inc_stat[two_years_ago]["Net Income"]) / avg_total_asset
             except Exception as e:
                 roa_py = None
             try:
-                oper_cashflow = int(cash_flow["2023"]["Operating Cash Flow"])
+                oper_cashflow = int(cash_flow[previous_year]["Operating Cash Flow"])
             except Exception as e:
                 oper_cashflow = None
             try:
-                leverage_cy_py = balance_sheet["2023"]["Long Term Debt"] - balance_sheet["2022"]["Long Term Debt"]
+                leverage_cy_py = balance_sheet[previous_year]["Long Term Debt"] - balance_sheet[two_years_ago]["Long Term Debt"]
             except Exception as e:
                 leverage_cy_py = None
             try:
-                current_ratio_cy = float(balance_sheet["2023"]["Current Assets"] / balance_sheet["2023"]["Current Liabilities"])
+                current_ratio_cy = float(balance_sheet[previous_year]["Current Assets"] / balance_sheet[previous_year]["Current Liabilities"])
             except Exception as e:
                 current_ratio_cy = None
             try:
-                current_ratio_py = float(balance_sheet["2022"]["Current Assets"] / balance_sheet["2022"]["Current Liabilities"])
+                current_ratio_py = float(balance_sheet[two_years_ago]["Current Assets"] / balance_sheet[two_years_ago]["Current Liabilities"])
             except Exception as e:
                 current_ratio_py = None
             try:
-                shares_issued_cy = int(balance_sheet["2023"]["Share Issued"])
+                shares_issued_cy = int(balance_sheet[previous_year]["Share Issued"])
             except Exception as e:
                 shares_issued_cy = None
             try:
-                shares_issued_py = int(balance_sheet["2022"]["Share Issued"])
+                shares_issued_py = int(balance_sheet[two_years_ago]["Share Issued"])
             except Exception as e:
                 shares_issued_py = None
             try:
-                gross_margin_cy = float(inc_stat["2023"]["Gross Profit"] / inc_stat["2023"]["Total Revenue"])
+                gross_margin_cy = float(inc_stat[previous_year]["Gross Profit"] / inc_stat[previous_year]["Total Revenue"])
             except Exception as e:
                 gross_margin_cy = None
             try:
-                gross_margin_py = float(inc_stat["2022"]["Gross Profit"] / inc_stat["2022"]["Total Revenue"])
+                gross_margin_py = float(inc_stat[two_years_ago]["Gross Profit"] / inc_stat[two_years_ago]["Total Revenue"])
             except Exception as e:
                 gross_margin_py = None
             try:
-                asset_turnover_cy = float(inc_stat["2023"]["Total Revenue"] / balance_sheet["2023"]["Total Assets"])
+                asset_turnover_cy = float(inc_stat[previous_year]["Total Revenue"] / balance_sheet[previous_year]["Total Assets"])
             except Exception as e:
                 asset_turnover_cy = None
             try:
-                asset_turnover_py = float(inc_stat["2022"]["Total Revenue"] / balance_sheet["2022"]["Total Assets"])
+                asset_turnover_py = float(inc_stat[two_years_ago]["Total Revenue"] / balance_sheet[two_years_ago]["Total Assets"])
             except Exception as e:
                 asset_turnover_py = None
 
@@ -186,76 +200,76 @@ if check_piotroski_score:
                 "Asset Turnover PY": asset_turnover_py
             }
 
-        elif functions.get_fundamentals(ticker_to_use)[4] == "2024":
+        elif functions.get_fundamentals(ticker_to_use)[4] == current_year:  # "2024":
             # try to extract the values that will be used to compute the 9 metrics
             if years == 4:
                 try:
-                    avg_total_asset = (balance_sheet["2024"]["Total Assets"] + balance_sheet["2023"]["Total Assets"] \
-                                      + balance_sheet["2022"]["Total Assets"] + balance_sheet["2021"]["Total Assets"]) / years
+                    avg_total_asset = (balance_sheet[current_year]["Total Assets"] + balance_sheet[previous_year]["Total Assets"] \
+                                      + balance_sheet[two_years_ago]["Total Assets"] + balance_sheet[three_years_ago]["Total Assets"]) / years
                 except Exception as e:
                     avg_total_asset = None
             elif years == 3:
                 try:
-                    avg_total_asset = (balance_sheet["2024"]["Total Assets"] + balance_sheet["2023"]["Total Assets"] \
-                                      + balance_sheet["2022"]["Total Assets"]) / years
+                    avg_total_asset = (balance_sheet[current_year]["Total Assets"] + balance_sheet[previous_year]["Total Assets"] \
+                                      + balance_sheet[two_years_ago]["Total Assets"]) / years
                 except Exception as e:
                     avg_total_asset = None
             elif years == 2:
                 try:
-                    avg_total_asset = (balance_sheet["2024"]["Total Assets"] + balance_sheet["2023"]["Total Assets"]) / years
+                    avg_total_asset = (balance_sheet[current_year]["Total Assets"] + balance_sheet[previous_year]["Total Assets"]) / years
                 except Exception as e:
                     avg_total_asset = None
 
             try:
-                net_income = int(inc_stat["2024"]["Net Income"])
+                net_income = int(inc_stat[current_year]["Net Income"])
             except Exception as e:
                 net_income = None
             try:
-                roa_cy = int(inc_stat["2024"]["Net Income"]) / avg_total_asset
+                roa_cy = int(inc_stat[current_year]["Net Income"]) / avg_total_asset
             except Exception as e:
                 roa_cy = None
             try:
-                roa_py = int(inc_stat["2023"]["Net Income"]) / avg_total_asset
+                roa_py = int(inc_stat[previous_year]["Net Income"]) / avg_total_asset
             except Exception as e:
                 roa_py = None
             try:
-                oper_cashflow = int(cash_flow["2024"]["Operating Cash Flow"])
+                oper_cashflow = int(cash_flow[current_year]["Operating Cash Flow"])
             except Exception as e:
                 oper_cashflow = None
             try:
-                leverage_cy_py = balance_sheet["2024"]["Long Term Debt"] - balance_sheet["2023"]["Long Term Debt"]
+                leverage_cy_py = balance_sheet[current_year]["Long Term Debt"] - balance_sheet[previous_year]["Long Term Debt"]
             except Exception as e:
                 leverage_cy_py = None
             try:
-                current_ratio_cy = float(balance_sheet["2024"]["Current Assets"] / balance_sheet["2024"]["Current Liabilities"])
+                current_ratio_cy = float(balance_sheet[current_year]["Current Assets"] / balance_sheet[current_year]["Current Liabilities"])
             except Exception as e:
                 current_ratio_cy = None
             try:
-                current_ratio_py = float(balance_sheet["2023"]["Current Assets"] / balance_sheet["2023"]["Current Liabilities"])
+                current_ratio_py = float(balance_sheet[previous_year]["Current Assets"] / balance_sheet[previous_year]["Current Liabilities"])
             except Exception as e:
                 current_ratio_py = None
             try:
-                shares_issued_cy = int(balance_sheet["2024"]["Share Issued"])
+                shares_issued_cy = int(balance_sheet[current_year]["Share Issued"])
             except Exception as e:
                 shares_issued_cy = None
             try:
-                shares_issued_py = int(balance_sheet["2023"]["Share Issued"])
+                shares_issued_py = int(balance_sheet[previous_year]["Share Issued"])
             except Exception as e:
                 shares_issued_py = None
             try:
-                gross_margin_cy = float(inc_stat["2024"]["Gross Profit"] / inc_stat["2024"]["Total Revenue"])
+                gross_margin_cy = float(inc_stat[current_year]["Gross Profit"] / inc_stat[current_year]["Total Revenue"])
             except Exception as e:
                 gross_margin_cy = None
             try:
-                gross_margin_py = float(inc_stat["2023"]["Gross Profit"] / inc_stat["2023"]["Total Revenue"])
+                gross_margin_py = float(inc_stat[previous_year]["Gross Profit"] / inc_stat[previous_year]["Total Revenue"])
             except Exception as e:
                 gross_margin_py = None
             try:
-                asset_turnover_cy = float(inc_stat["2024"]["Total Revenue"] / balance_sheet["2024"]["Total Assets"])
+                asset_turnover_cy = float(inc_stat[current_year]["Total Revenue"] / balance_sheet[current_year]["Total Assets"])
             except Exception as e:
                 asset_turnover_cy = None
             try:
-                asset_turnover_py = float(inc_stat["2023"]["Total Revenue"] / balance_sheet["2023"]["Total Assets"])
+                asset_turnover_py = float(inc_stat[previous_year]["Total Revenue"] / balance_sheet[previous_year]["Total Assets"])
             except Exception as e:
                 asset_turnover_py = None
 
@@ -340,7 +354,7 @@ if check_piotroski_score:
         # drop the columns we don't need anymore
         df.drop(columns=columns_to_delete, inplace=True)
 
-        # This variables contains the number of metrics out of 9 having a value of 1 or 0; None is discarded
+        # This variable contains the number of metrics out of 9 having a value of 1 or 0; None is discarded
         valid_scores = 0
         for value in scores.items():
             if value[1] == 1 or value[1] == 0:
@@ -364,7 +378,7 @@ if check_piotroski_score:
         increase_gross_margin = df._get_value(0, "Increase in Gross Margin")
         increase_asset_turnover = df._get_value(0, "Increase in Asset Turnover")
 
-        if int(pos_scores) >= 8:
+        if int(pos_scores) >= 8 or (int(valid_scores) == 8 and int(pos_scores) >= 7):
             best_stocks.append(ticker_to_use)
             print("\n" + ticker_to_use + " based on year: " + str(last_year))
             print("PIOTROSKI SCORE: " + str(piotroski_score))
@@ -377,14 +391,14 @@ if check_piotroski_score:
             print("No shares issued: " + str(no_shares_issued))
             print("Increase Gross Margin: " + str(increase_gross_margin))
             print("Increase Asset Turnover: " + str(increase_asset_turnover) + "\n")
-        else:
-            print(ticker_to_use + ": " + str(piotroski_score) + "\n")
+        # else:
+        #     print(ticker_to_use + ": " + str(piotroski_score) + "\n")
 
     print("No. of best stocks: " + str(len(best_stocks)))
 
-    # write list of the best stocks to a text file
-    # file_name = "HighestScore_AllYahooFinance"
-    # functions.write_list_to_txt(best_stocks, file_name)
+    # write a list of the best stocks to a text file
+    file_name = "HighestScore_NYSE_NASDAQ"
+    functions.write_list_to_txt(best_stocks, file_name)
 
 
 # Step 6
@@ -430,6 +444,8 @@ if check_undervalued_stocks:
         elif industry == "Confectioners":  # Confectioners is not in the webpage
             avg_pe_ratio = None
         elif industry == "Financial Data & Stock Exchanges":  # Financial Data & Stock Exchanges is not in the webpage
+            avg_pe_ratio = None
+        elif industry == "Beverages - Brewers":  # Beverages - Brewers is not in the webpage
             avg_pe_ratio = None
         else:
             avg_pe_ratio = float(industry_pe_ratio[industry])

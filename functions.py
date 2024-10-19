@@ -119,11 +119,17 @@ def get_fundamentals(ticker: str) -> list:
     This function first tries to download the data from yfinance, if successful
     it will split the data into 3 variables, one for each statement.
     For each variable, the last available year will be compared with "2023" or "2024"
-    and it will be checked how many years it shows.
-    Ideally the three statements should contain 4 years, anyway if more only the last 4 will be used, if
-    less only those available, but at least 2 years.
-    :param: ticker
-    :return: a list [True, inc_stat, balance_sheet, cash_flow, "2024", 4]
+    and it will be checked how many years of data it shows.
+
+    There are different possible combinations:
+    - ideally the three statements contain 4 years;
+    - sometimes there are > 4 years, if so only the last 4 will be used;
+    - elif at least one statement has 3 years, only 3 years will be used;
+    - elif at least one statement has 2 years, only 2 years will be used;
+    - else there are less than 2 years of data, the ticker will return a list with no data.
+
+    :param: a ticker
+    :return: a list like [True, inc_stat, balance_sheet, cash_flow, "2023", 4]
              else it returns [False, [], [], [], "", None]
     """
     try:
@@ -165,7 +171,8 @@ def get_fundamentals(ticker: str) -> list:
             return [True, inc_stat, balance_sheet, cash_flow, "2024", 4]
         else:
             return [False, [], [], [], "", None]
-    # any statement has more than 4 years (the other no less than 4) and last year == 2023 or last year == 2024
+
+    # at least one statement has more than 4 years (the others no less than 4) and last year == 2023 or last year == 2024
     # only the last 4 years will be used and the columns renamed with only Year
     elif (inc_stat_len > 4 or bal_sheet_len > 4 or cash_flow_len > 4) and \
             (inc_stat_len >= 4 and bal_sheet_len >= 4 and cash_flow_len >= 4):
@@ -187,7 +194,8 @@ def get_fundamentals(ticker: str) -> list:
             return [True, inc_stat, balance_sheet, cash_flow, "2024", 4]
         else:
             return [False, [], [], [], "", None]
-    # any statement has 3 years and the others at least 3 or more
+
+    # at least one statement has 3 years and the others at least 3 or more
     # only the last 3 years will be used and the columns renamed with only Year
     elif (inc_stat_len == 3 or bal_sheet_len == 3 or cash_flow_len == 3) and \
             (inc_stat_len >= 3 and bal_sheet_len >= 3 and cash_flow_len >= 3):
@@ -209,7 +217,8 @@ def get_fundamentals(ticker: str) -> list:
             return [True, inc_stat, balance_sheet, cash_flow, "2024", 3]
         else:
             return [False, [], [], [], "", None]
-    # any statement has 2 years and the others at least 2 or more
+
+    # at least one statement has 2 years and the others at least 2 or more
     # only the last 2 years will be used and the columns renamed with only Year
     elif (inc_stat_len == 2 or bal_sheet_len == 2 or cash_flow_len == 2) \
         and (inc_stat_len >= 2 and bal_sheet_len >= 2 and cash_flow_len >= 2):
