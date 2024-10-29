@@ -70,17 +70,19 @@ Step 7: for each of the tickers with the highest scores it will be calculated Pr
 
 # uncomment one line below to create a list with the tickers with the highest Piotroski score
 # my_file = open("HighestScore_NYSE_NASDAQ.txt", "r")
-my_file = open("HighestScore_AllYahooFinance.txt", "r")
+# my_file = open("HighestScore_AllYahooFinance.txt", "r")
 
-data = my_file.read()
-data_into_list = data.replace('\n', ', ').split(", ")
-ticker_list = list(filter(None, data_into_list))
+# data = my_file.read()
+# data_into_list = data.replace('\n', ', ').split(", ")
+# ticker_list = list(filter(None, data_into_list))
 
 # ticker_list = ['AAPL', 'MSFT', 'TSLA', 'QYYUUAK']
 # ticker = ticker_list[2]
 
-best_stocks = []
+my_file = pd.read_csv("/Users/madararubino/Downloads/nyse_tickers.csv")
+ticker_list = my_file["Symbol"].tolist()
 
+best_stocks = []
 
 # set check_piotroski_score to True to search for tickers with the highest Piotroski rank
 # set check_undervalued_stocks to True to find undervalued tickers among those with the highest Piotroski rank
@@ -89,6 +91,7 @@ check_undervalued_stocks = True
 
 if check_piotroski_score:
     for ticker_to_use in ticker_list:
+        print(ticker_to_use)
         # download data and split it into 3 variables: income statement, balance sheet and cash flow
         # set two variables with the last year available and how many years of data for that ticker
         if functions.get_fundamentals(ticker_to_use)[0]:
@@ -395,23 +398,26 @@ if check_piotroski_score:
         #     print(ticker_to_use + ": " + str(piotroski_score) + "\n")
 
     print("No. of best stocks: " + str(len(best_stocks)))
-
-    # write a list of the best stocks to a text file
-    file_name = "HighestScore_NYSE_NASDAQ"
-    functions.write_list_to_txt(best_stocks, file_name)
-
+    print(best_stocks)
+    # uncomment to write a list of the best stocks to a text file
+    # file_name = "HighestScore_NYSE_NASDAQ"
+    # functions.write_list_to_txt(best_stocks, file_name)
 
 # Step 6
 industries, pe_ratios = functions.find_industry_pe_ratio()
 industry_pe_ratio = functions.dict_from_two_lists(industries, pe_ratios)
+undervalued_stocks = []
 
 # Step 7
 if check_undervalued_stocks:
-    my_file = open("HighestScore_NYSE_NASDAQ.txt")
-    data = my_file.read()
+    # Uncomment to open a txt file and create a list of tickers
+    # my_file = open("HighestScore_NYSE_NASDAQ.txt")
+    # data = my_file.read()
     # create a list of tickers
-    data_into_list = data.replace('\n', ', ').split(", ")
-    ticker_list = list(filter(None, data_into_list))
+    # data_into_list = data.replace('\n', ', ').split(", ")
+    # ticker_list = list(filter(None, data_into_list))
+
+    ticker_list = ['ADNT', 'ADT', 'AEO', 'AER', 'ALLE', 'AMTM', 'ANF', 'AOS', 'APG', 'APO', 'ARMK', 'ASR', 'AXTA', 'BABA', 'BBU', 'BBW', 'BMI', 'BNL', 'BR', 'BWLP', 'BWMX', 'BWXT', 'CAAP', 'CABO', 'CACI', 'CANG', 'CAT', 'CEIX', 'CHD', 'CHT', 'CIG', 'CL', 'CLCO', 'CLS', 'CLVT', 'CLW', 'CMBT', 'CNK', 'CNMD', 'CPA', 'CRM', 'CSR', 'CTO', 'CUBE', 'CURB', 'CVEO', 'CVI', 'CW', 'CYD', 'DAY', 'DBRG', 'DCI', 'DOCS', 'DOLE', 'DPZ', 'DVA', 'DXC', 'DY', 'EAT', 'EDN', 'EHC', 'EPC', 'ETN', 'FICO', 'FINV', 'FMS', 'FTI', 'GFF', 'GFL', 'GHG', 'GRC', 'GSL', 'GTES', 'GWW', 'GXO', 'HAL', 'HII', 'HWM', 'HY', 'IMAX', 'INGR', 'INSW', 'IT', 'ITT', 'JBT', 'JELD', 'KAI', 'KEX', 'KGC', 'KMB', 'KO', 'KOF', 'LBRT', 'LPG', 'MAS', 'MCS', 'MLM', 'MMC', 'MSGS', 'MSI', 'MTW', 'NEU', 'NR', 'NVO', 'NXRT', 'OII', 'PBH', 'PDS', 'PEG', 'PEN', 'PH', 'PINS', 'PRLB', 'PRMW', 'RACE', 'RBC', 'RELX', 'RNG', 'ROK', 'RYN', 'SAM', 'SAP', 'SBH', 'SKM', 'SPG', 'SQ', 'SSD', 'T', 'TBB', 'TDC', 'TDG', 'TEN', 'TIMB', 'TJX', 'TK', 'TKC', 'TRAK', 'TRI', 'TS', 'TT', 'TXT', 'TYL', 'UHS', 'USM', 'VIV', 'VMC', 'VRT', 'VSTS', 'WAB', 'WMT', 'WNS', 'YELP', 'YMM', 'YUMC', 'ZTS', 'ZWS']
 
     for t in ticker_list:
         data = functions.get_ticker_info(t)
@@ -459,9 +465,11 @@ if check_undervalued_stocks:
             print("Price/Book ratio: " + str(pb_ratio))
             print("PE Ratio is: " + str(trailingpe) + " - Industry Avg: " + str(avg_pe_ratio))
             print("PEG Ratio is: " + str(peg) + "\n")
+            undervalued_stocks.append(t)
         else:
             continue
 
+print(undervalued_stocks)
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.

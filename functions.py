@@ -21,30 +21,30 @@ def find_industry_pe_ratio():
     This function will scan the webpage https://fullratio.com/pe-ratio-by-industry to
     download the average PE ratio per industry and will create a dictionary
     industry/pe_ratio.
-    The assumption is that there are 120 industries
+    The assumption is that there are 122 industries, but the number must be checked manually
     :return: the dictionary with industry (key) / pe_ratio (value)
     """
     webpage = pd.read_html('https://fullratio.com/pe-ratio-by-industry')
 
-    # there are 120 industries: extract the 2 columns we are interested in
+    # there are 122 industries: extract the 2 columns we are interested in
     industry_column = str(webpage[0]["Industry"])
     pe_column = str(webpage[0]["Average P/E ratio"])
 
-    # split the industry string into 120 substring and strip the leading and trailing white spaces
+    # split the industry string into 122 substring and strip the leading and trailing white spaces
     industries = []
     start = 3
     end = 48
-    for s in range(0, 120):
+    for s in range(0, 122):
         industry = industry_column[start:end].strip()
         industries.append(industry)
         start += 48
         end += 48
 
-    # split the pe_ratio string into 120 substring and strip the leading and trailing white spaces
+    # split the pe_ratio string into 122 substring and strip the leading and trailing white spaces
     pe_ratios = []
     pe_start = 3
     pe_end = 13
-    for s in range(0, 120):
+    for s in range(0, 122):
         pe = pe_column[pe_start:pe_end].strip()
         pe_ratios.append(pe)
         pe_start += 13
